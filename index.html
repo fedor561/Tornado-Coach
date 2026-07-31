@@ -1,0 +1,44 @@
+<!DOCTYPE html><html><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="manifest" href="manifest.json">
+<title>Tornado Coach</title>
+<style>
+body{font-family:Arial;margin:0;background:#0b4f2f;color:#fff}
+header{padding:16px;background:#083b23}
+#field{position:relative;margin:20px auto;width:360px;height:600px;background:#2d8b57;border:3px solid #fff}
+.player{position:absolute;width:46px;height:46px;border-radius:50%;background:#d62828;color:#fff;
+display:flex;align-items:center;justify-content:center;font-weight:bold;cursor:move;user-select:none}
+small{display:block;text-align:center}
+</style></head><body>
+<header><h2>Tornado Coach v0.1</h2><button onclick="save()">Save</button></header>
+<div id="field"></div>
+<script>
+const players=[
+['FS',157,40],['CB',40,130],['CB',275,130],
+['OLB',25,240],['MLB',110,240],['MLB',195,240],['OLB',280,240],
+['DE',55,360],['NT',130,360],['NT',205,360],['DE',280,360]
+];
+const field=document.getElementById('field');
+players.forEach((p,i)=>{
+ let d=document.createElement('div'); d.className='player';
+ d.innerHTML='<div><div>'+p[0]+'</div><small>'+(i+1)+'</small></div>';
+ d.style.left=p[1]+'px'; d.style.top=p[2]+'px';
+ let ox,oy,drag=false;
+ d.onpointerdown=e=>{drag=true;ox=e.offsetX;oy=e.offsetY;d.setPointerCapture(e.pointerId);}
+ d.onpointermove=e=>{if(!drag)return;const r=field.getBoundingClientRect();
+ d.style.left=(e.clientX-r.left-ox)+'px'; d.style.top=(e.clientY-r.top-oy)+'px';}
+ d.onpointerup=()=>drag=false;
+ d.ondblclick=()=>{const n=prompt('Label',p[0]); if(n){p[0]=n; d.querySelector('div div').textContent=n;}};
+ field.appendChild(d);
+});
+function save(){
+ const data=[...document.querySelectorAll('.player')].map(x=>({l:x.style.left,t:x.style.top,label:x.innerText}));
+ localStorage.setItem('formation',JSON.stringify(data)); alert('Saved');
+}
+const saved=localStorage.getItem('formation');
+if(saved){
+ JSON.parse(saved).forEach((p,i)=>{const d=document.querySelectorAll('.player')[i];
+ if(d){d.style.left=p.l; d.style.top=p.t; d.querySelector('div div').textContent=p.label.split('\n')[0];}});
+}
+if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js');}
+</script></body></html>
